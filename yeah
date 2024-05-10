@@ -1,0 +1,139 @@
+if getgenv().Settings.autocreateandjoinportal == true then
+repeat wait() until game:IsLoaded()
+if game.PlaceId == 16474126979 then 
+    wait(.5)
+    spawn(function()
+    while task.wait(.1) do 
+    if  not game:GetService("Workspace").Portal[game.Players.LocalPlayer.Name]:FindFirstChild("DoubleDungeonPortal") then 
+    local args = {
+       [1] = "DoubleDungeonPortal",
+       [2] = 1
+   }
+   
+   game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("InventoryUse"):FireServer(unpack(args))
+ end 
+ 
+   for i,v in pairs(game:GetService("Workspace").Portal:GetDescendants()) do 
+    if v:IsA("MeshPart") and v.Name == "DoubleDungeonPortal" and v:FindFirstChild("Leader") and v.Leader.Value == game.Players.LocalPlayer.Name then 
+       game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("StartPortal"):FireServer()
+     end 
+ end
+    end 
+ end)
+end
+end
+
+
+if getgenv().Settings.record == true then
+    repeat wait() until game:IsLoaded()
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Ready"):FireServer()
+
+local startTime = tick()
+local towerRecord = {}
+local httpService = game:GetService("HttpService")
+local mt = getrawmetatable(game)
+local oldNamecall = mt.__namecall
+setreadonly(mt, false)
+mt.__namecall = newcclosure(function(self, ...)
+    args = {...}
+    if getnamecallmethod() == "FireServer" and tostring(self) == "CreateUnits" then
+        towerRecord[#towerRecord + 1] = {
+            ["time"] = tick() - startTime; 
+            ["character"] = args[1]; 
+            ["position"] = tostring(args[2]); 
+            ["unitid"] = tostring(args[4]);
+            ["type"] = "CreateUnit";
+        }    
+    elseif getnamecallmethod() == "FireServer" and tostring(self) == "Upgrades" then
+        towerRecord[#towerRecord + 1] = {
+            ["time"] = tick() - startTime; 
+            ["character"] = args[1].Name; 
+            ["type"] = "UpgradeUnit";
+        }    
+    elseif getnamecallmethod() == "FireServer" and tostring(self) == "SellUnit" then
+        towerRecord[#towerRecord + 1] = {
+            ["time"] = tick() - startTime; 
+            ["character"] = args[1].Name; 
+            ["type"] = "SellUnit";
+        }    
+    end
+
+    return oldNamecall(self, unpack(args))
+end)
+setreadonly(mt, true)
+
+spawn(function()
+while task.wait() do 
+    writefile(getgenv().getgenv().Settings.FileName .. ".txt", httpService:JSONEncode(towerRecord))
+    end
+end)
+
+--Auto Replay
+if  game.PlaceId == 17242022433 and getgenv().Settings.replay == true then
+     repeat wait() until game:IsLoaded()
+    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Ready"):FireServer()
+    local replayName =  getgenv().Settings.FileName .. ".txt"
+    local startTime = tick()
+ local macro = readfile(replayName)
+ local httpService = game:GetService("HttpService")
+ local recordTowers = httpService:JSONDecode(macro)
+ local function stcf(s)
+    return loadstring("return CFrame.new(" .. s .. ");")();
+ end
+ 
+ local function place(info)
+    local args = {
+        [1] = info.character,
+        [2] = stcf(info.position),
+        [3] = Vector3.zero,
+        [4] = info.unitid
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CreateUnits"):FireServer(unpack(args))
+    end
+    local function upgrade(info)
+        local args = {
+            [1] = workspace:WaitForChild("Unit"):WaitForChild(game.Players.LocalPlayer.Name):WaitForChild(info.character)
+        }
+        
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Upgrades"):FireServer(unpack(args))
+    end 
+     local function sell(info)
+        local player = game.Players.LocalPlayer.Name
+        local unitsell = workspace:WaitForChild("Unit"):WaitForChild(player):WaitForChild(info.character)
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("SellUnit"):FireServer(unitsell)  
+     end 
+    local tower = 1
+    while task.wait() do 
+        if not recordTowers[tower] then 
+            break 
+        end
+
+        local currentTask = recordTowers[tower] 
+        if (currentTask.time <= tick() - startTime) then 
+             if currentTask.type == "CreateUnit" then 
+            place(currentTask)
+             elseif currentTask.type == "UpgradeUnit" then 
+                upgrade(currentTask)
+             elseif currentTask.type == "SellUnit" then 
+                sell(currentTask)
+             end
+            recordTowers[tower] = nil
+            tower = tower + 1 
+        end
+    end  
+end
+ end
+
+--Skip Reward
+if getgenv().Settings.skip == true then
+repeat wait() until game:IsLoaded()
+spawn(function()
+while task.wait(.1) do 
+    if  game.PlaceId == 17242022433 then 
+if game:GetService("Players").LocalPlayer.PlayerGui.Notification.ReturntoLobby.Visible == true then 
+    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("ReturnToLobby"):FireServer()
+end 
+end
+end
+end)
+end
