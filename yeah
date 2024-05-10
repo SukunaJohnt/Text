@@ -1,3 +1,4 @@
+--b
 if getgenv().Settings.autocreateandjoinportal == true then
 repeat wait() until game:IsLoaded()
 if game.PlaceId == 16474126979 then 
@@ -24,7 +25,7 @@ end
 end
 
 
-if getgenv().Settings.record == true then
+if  game.PlaceId ~= 16474126979  and getgenv().Settings.record == true then
     repeat wait() until game:IsLoaded()
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Ready"):FireServer()
 
@@ -69,7 +70,7 @@ while task.wait() do
 end)
 
 --Auto Replay
-if  game.PlaceId == 17242022433 and getgenv().Settings.replay == true then
+if   game.PlaceId ~= 16474126979 and getgenv().Settings.replay == true then
      repeat wait() until game:IsLoaded()
     game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Ready"):FireServer()
     local replayName =  getgenv().Settings.FileName .. ".txt"
@@ -129,7 +130,7 @@ if getgenv().Settings.skip == true then
 repeat wait() until game:IsLoaded()
 spawn(function()
 while task.wait(.1) do 
-    if  game.PlaceId == 17242022433 then 
+    if   game.PlaceId ~= 16474126979 then 
 if game:GetService("Players").LocalPlayer.PlayerGui.Notification.ReturntoLobby.Visible == true then 
     game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("ReturnToLobby"):FireServer()
 end 
